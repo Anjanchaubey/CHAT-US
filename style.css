@@ -1,69 +1,435 @@
-/* Style the chat container */
+/* General Body Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(135deg, #6e7c7c, #3f4f4f);
+    color: #333;
+    overflow: hidden;
+}
+
+/* Chat Container */
 .chat-container {
-    width: 400px;
-    margin: 100px auto;
-    font-family: Arial, sans-serif;
-    text-align: center;
-}
-
-/* Chatbox */
-.chat-box {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     width: 100%;
-    height: 300px;
-    border: 1px solid #ccc;
-    overflow-y: scroll;
-    padding: 10px;
-    background-color: #f9f9f9;
-    margin-bottom: 10px;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 0; /* No radius for full-page effect */
+    box-shadow: none; /* Remove any extra shadow */
 }
 
-/* Individual message style */
+/* Chat Box Styles */
+.chat-box {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #f3f7f9;
+    box-shadow: none; /* Remove shadow */
+    font-size: 14px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Scrollbar Customization */
+.chat-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+/* Message Styles */
 .message {
-    margin: 5px 0;
-    text-align: left;
-    padding: 8px;
-    background-color: #e1e1e1;
-    border-radius: 5px;
+    margin: 12px 0;
+    padding: 16px;
+    border-radius: 15px;
+    background-color: #e4f0f4; /* Subtle background */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    word-wrap: break-word;
+    max-width: 75%;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
-/* Input container */
+.message:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.message .user-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 5px;
+}
+
+/* Specific User Message Backgrounds */
+.message.user-1 {
+    background-color: #ffc107; /* Yellow for user 1 */
+    align-self: flex-start;
+}
+
+.message.user-2 {
+    background-color: #4caf50; /* Green for user 2 */
+    align-self: flex-end;
+}
+
+.message.user-3 {
+    background-color: #2196f3; /* Blue for user 3 */
+    align-self: flex-start;
+}
+
+.message.user-4 {
+    background-color: #f44336; /* Red for user 4 */
+    align-self: flex-end;
+}
+
+/* Image Styling (Limited Size) */
+.message img,
+.message video {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+    margin-top: 12px;
+    object-fit: cover;
+}
+
+/* Message Bubbles Animation */
+@keyframes bubbleAnimation {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message {
+    animation: bubbleAnimation 0.5s ease-out;
+}
+
+/* Input Area Styling */
 .input-container {
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding: 14px;
+    background-color: #fff;
+    border-top: 2px solid #ddd;
+    border-radius: 0; /* Remove radius to keep it flat */
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* Message input */
-#message-input {
+/* Input Field Styling */
+input[type="text"] {
     width: 80%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 16px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+    margin-right: 10px;
+    transition: border-color 0.3s ease;
 }
 
-/* Send button */
-button {
+input[type="text"]:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+input[type="file"] {
     width: 18%;
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
+    background-color: #e4f0f4;
+    border-radius: 16px;
     border: none;
-    border-radius: 5px;
+    padding: 12px;
+    font-size: 14px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="file"]:hover {
+    background-color: #2196f3;
+}
+
+/* Button Styling */
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 14px 20px;
+    font-size: 14px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
+    transform: scale(1.05);
 }
 
-/* Add this to your CSS to style the media in the chat */
-.message img {
-    max-width: 100%;
-    height: auto;
-    margin: 5px 0;
+/* File Upload Button Styling */
+input[type="file"]::-webkit-file-upload-button {
+    background-color: #007bff;
+    color: white;
+    padding: 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
-.message video {
-    max-width: 100%;
-    height: auto;
-    margin: 5px 0;
+input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #0056b3;
 }
+
+/* Fullscreen Layout */
+@media (min-width: 1024px) {
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+    }
+
+    .chat-container {
+        width: 100%;
+        height: 100vh;
+        box-sizing: border-box;
+    }
+
+    .chat-box {
+        padding: 20px;
+        height: calc(100vh - 120px); /* Adjust based on header/footer height */
+    }
+
+    .message {
+        font-size: 16px;
+        max-width: 80%;
+    }
+
+    .input-container {
+        padding: 20px;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Modal Styling for Image/Video */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 60px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+}
+
+.close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#menu-options {
+    position: absolute;
+    top: 20px;
+    left: 35px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+#menu-options button {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+}
+
+/* sign up and sign in btn */
+/* Basic Button Styles */
+/* Header Styles */
+.header {
+    display: flex;
+    justify-content: space-between;  /* Align h1 and buttons with space between them */
+    align-items: center;  /* Vertically center the items */
+    padding: 20px;
+    background-color: #f8f9fa;  /* Light background for the header */
+}
+
+/* h1 Style */
+.header h1 {
+    margin: 0;  /* Remove default margin */
+    font-size: 28px;  /* Adjust size as needed */
+    font-weight: bold;
+}
+
+/* Auth Buttons Wrapper */
+.auth-buttons {
+    display: flex;
+    gap: 10px;  /* Space between buttons */
+}
+
+/* Button Styles */
+.btn12 {
+    display: inline-block;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;  /* Remove underline */
+    color: white;
+    background-color: #007bff;  /* Default blue color */
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Button shadow */
+}
+
+/* Hover Effect */
+.btn12:hover {
+    background-color: #0056b3;  /* Darker blue on hover */
+    transform: scale(1.05);     /* Slight grow effect on hover */
+}
+
+/* Specific Style for Sign Up Button */
+.btn12[href="signup.html"] {
+    background-color: #28a745; /* Green color for Sign Up */
+}
+
+.btn12[href="signup.html"]:hover {
+    background-color: #218838; /* Darker green on hover */
+}
+
+/* Specific Style for Sign In Button */
+.btn12[href="login.html"] {
+    background-color: #ffc107; /* Yellow color for Sign In */
+}
+
+.btn12[href="login.html"]:hover {
+    background-color: #e0a800; /* Darker yellow on hover */
+}
+
+
+/* for username */
+/* General Styling for the Welcome Text */
+p {
+    font-size: 18px;             /* Font size for the 'Welcome' text */
+    font-weight: normal;         /* Normal font weight for 'Welcome' */
+    color: #333;                 /* Dark grey color for good readability */
+    margin: 0;                   /* Remove any default margin */
+    font-family: Arial, sans-serif; /* Clean font style */
+}
+
+/* Username Styling */
+#username-display {
+    font-size: 20px;             /* Larger font size for the username */
+    font-weight: bold;           /* Bold for the username */
+    color: #007bff;              /* Blue color for the username */
+    text-transform: capitalize;  /* Capitalizes the first letter */
+    margin-left: 5px;            /* Space between 'Welcome' and the username */
+    transition: color 0.3s ease; /* Smooth transition on hover */
+}
+
+/* Hover effect on the username */
+#username-display:hover {
+    color: #0056b3;  /* Darker blue when hovered */
+    cursor: pointer; /* Changes the cursor to pointer to indicate interaction */
+}
+
+/* pop up */
+/* Progress Bar Popup Styles */
+#progress-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    width: 250px; /* Smaller size */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    color: white;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Progress bar container */
+#progress-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Styled progress bar */
+progress {
+    width: 100%;
+    height: 20px;
+    border-radius: 10px;
+    margin-top: 10px;
+    appearance: none;
+    background: #f1f1f1;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+progress::-webkit-progress-bar {
+    background-color: #f1f1f1;
+    border-radius: 10px;
+}
+
+progress::-webkit-progress-value {
+    background-color: #4caf50; /* Green color */
+    border-radius: 10px;
+}
+
+progress::-moz-progress-bar {
+    background-color: #4caf50; /* Green color */
+    border-radius: 10px;
+}
+
+#upload-progress-text {
+    margin-top: 5px;
+    font-size: 14px;
+    font-weight: bold;
+}
+

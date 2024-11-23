@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase CDN Scripts -->
+</head>
+<body>
+    <div class="chat-container">
+        <h1>Chat with Friends</h1>
+        
+        <div id="chat-box" class="chat-box">
+            <!-- Messages will appear here -->
+        </div>
+
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <a href="signup.html">SIGN UP</a>
+    <a href="login.html">SIGN IN</a>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCYY2GQqS0tCXb7Oxw8AWXhpexq9e8VRUs",
+            authDomain: "aspirehub-32863.firebaseapp.com",
+            projectId: "aspirehub-32863",
+            storageBucket: "aspirehub-32863.appspot.com",
+            messagingSenderId: "686810111182",
+            appId: "1:686810111182:web:4290b4b1b6e64934ec449f",
+            measurementId: "G-KX41R0SSMY"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Send message function
+        function sendMessage() {
+            const message = document.getElementById("message-input").value;
+            if (message.trim() !== "") {
+                // Add message to Firestore
+                addDoc(collection(db, "messages"), {
+                    text: message,
+                    timestamp: new Date()
+                }).then(() => {
+                    document.getElementById("message-input").value = ""; // clear input
+                }).catch((error) => {
+                    console.error("Error adding document: ", error);
+                });
+            }
+        }
+
+        // Load messages in real-time
+        onSnapshot(collection(db, "messages"), (snapshot) => {
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = ""; // clear chat box
+
+            snapshot.forEach((doc) => {
+                const messageDiv = document.createElement("div");
+                messageDiv.classList.add("message");
+                messageDiv.innerText = doc.data().text;
+                chatBox.appendChild(messageDiv);
+            });
+
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // Add event listener to send button
+        document.getElementById("send-button").addEventListener("click", sendMessage);
+    </script>
+</body>
+</html>

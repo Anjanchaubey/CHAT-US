@@ -54,3 +54,16 @@ button {
 button:hover {
     background-color: #45a049;
 }
+
+/* Add this to your CSS to style the media in the chat */
+.message img {
+    max-width: 100%;
+    height: auto;
+    margin: 5px 0;
+}
+
+.message video {
+    max-width: 100%;
+    height: auto;
+    margin: 5px 0;
+}

@@ -17,6 +17,7 @@
 
         <div class="input-container">
             <input type="text" id="message-input" placeholder="Type your message...">
+            <input type="file" id="file-input" accept="image/*,video/*"> <!-- File input for media -->
             <button id="send-button">Send</button>
         </div>
     </div>
@@ -27,6 +28,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -42,12 +44,41 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // Send message function
         function sendMessage() {
             const message = document.getElementById("message-input").value;
-            if (message.trim() !== "") {
-                // Add message to Firestore
+            const fileInput = document.getElementById("file-input");
+
+            // If there is a file selected, upload it to Firebase Storage
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const storageRef = ref(storage, 'chat-files/' + file.name);
+
+                // Upload the file
+                uploadBytes(storageRef, file).then((snapshot) => {
+                    // Get the download URL after upload
+                    getDownloadURL(snapshot.ref).then((url) => {
+                        // Now save the message with the file URL
+                        addDoc(collection(db, "messages"), {
+                            text: message.trim() || "Sent a media file",
+                            timestamp: new Date(),
+                            mediaUrl: url,
+                            mediaType: file.type
+                        }).then(() => {
+                            // Clear the inputs
+                            document.getElementById("message-input").value = "";
+                            fileInput.value = ""; // Reset the file input
+                        }).catch((error) => {
+                            console.error("Error adding document: ", error);
+                        });
+                    });
+                }).catch((error) => {
+                    console.error("Error uploading file: ", error);
+                });
+            } else if (message.trim() !== "") {
+                // If there's no file, just send the text message
                 addDoc(collection(db, "messages"), {
                     text: message,
                     timestamp: new Date()
@@ -59,7 +90,7 @@
             }
         }
 
-        // Load messages in real-time
+        // Real-time listener for messages
         onSnapshot(collection(db, "messages"), (snapshot) => {
             const chatBox = document.getElementById("chat-box");
             chatBox.innerHTML = ""; // clear chat box
@@ -67,7 +98,21 @@
             snapshot.forEach((doc) => {
                 const messageDiv = document.createElement("div");
                 messageDiv.classList.add("message");
-                messageDiv.innerText = doc.data().text;
+
+                const messageData = doc.data();
+
+                if (messageData.mediaUrl) {
+                    // Display media (image or video)
+                    const mediaElement = document.createElement(messageData.mediaType.includes("image") ? "img" : "video");
+                    mediaElement.src = messageData.mediaUrl;
+                    mediaElement.controls = true;
+                    mediaElement.style.maxWidth = "100%";
+                    messageDiv.appendChild(mediaElement);
+                } else {
+                    // Display text message
+                    messageDiv.innerText = messageData.text;
+                }
+
                 chatBox.appendChild(messageDiv);
             });
 

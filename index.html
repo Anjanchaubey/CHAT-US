@@ -11,13 +11,18 @@
     <div class="chat-container">
         <h1>Chat with Friends</h1>
         
-        <div id="chat-box" class="chat-box">
-            <!-- Messages will appear here -->
+        <!-- Display username here -->
+        <div id="username-container">
+            <p>Welcome, <span id="username-display">User</span></p>
         </div>
+        
+        <div id="chat-box" class="chat-box">
+            <!-- Messages will be displayed here -->
+        </div>          
 
         <div class="input-container">
             <input type="text" id="message-input" placeholder="Type your message...">
-            <input type="file" id="file-input" accept="image/*,video/*"> <!-- File input for media -->
+            <input type="file" id="file-input" accept="image/*,video/*,application/*"> <!-- File input for media -->
             <button id="send-button">Send</button>
         </div>
     </div>
@@ -27,8 +32,9 @@
     <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -45,6 +51,24 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const storage = getStorage(app);
+        const auth = getAuth(app);
+
+        // Auth state listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Set username in the display
+                const usernameDisplay = document.getElementById('username-display');
+                if (user.displayName) {
+                    usernameDisplay.innerText = user.displayName; // Display user's set display name
+                } else {
+                    usernameDisplay.innerText = user.email.split('@')[0]; // Use email prefix if no username
+                }
+                console.log("User logged in:", user.email);
+            } else {
+                console.log("No user logged in");
+                window.location.href = "login.html"; // Redirect to login page if not logged in
+            }
+        });
 
         // Send message function
         function sendMessage() {
@@ -54,18 +78,21 @@
             // If there is a file selected, upload it to Firebase Storage
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
+                const fileSize = file.size / (1024 * 1024); // File size in MB
                 const storageRef = ref(storage, 'chat-files/' + file.name);
 
-                // Upload the file
-                uploadBytes(storageRef, file).then((snapshot) => {
-                    // Get the download URL after upload
-                    getDownloadURL(snapshot.ref).then((url) => {
-                        // Now save the message with the file URL
+                // Check if file is larger than 10MB
+                if (fileSize > 10) {
+                    // Handle large file - only allow download
+                    getDownloadURL(storageRef).then((url) => {
+                        // Save the message with the file URL and file size
                         addDoc(collection(db, "messages"), {
-                            text: message.trim() || "Sent a media file",
+                            text: message.trim() || "Sent a large file (greater than 10MB)",
                             timestamp: new Date(),
                             mediaUrl: url,
-                            mediaType: file.type
+                            mediaType: file.type,
+                            fileSize: fileSize,
+                            user: auth.currentUser.displayName || auth.currentUser.email // Store the user's display name or email
                         }).then(() => {
                             // Clear the inputs
                             document.getElementById("message-input").value = "";
@@ -74,14 +101,36 @@
                             console.error("Error adding document: ", error);
                         });
                     });
-                }).catch((error) => {
-                    console.error("Error uploading file: ", error);
-                });
+                } else {
+                    // Upload smaller files
+                    uploadBytes(storageRef, file).then((snapshot) => {
+                        // Get the download URL after upload
+                        getDownloadURL(snapshot.ref).then((url) => {
+                            // Save the message with the file URL
+                            addDoc(collection(db, "messages"), {
+                                text: message.trim() || "Sent a media file",
+                                timestamp: new Date(),
+                                mediaUrl: url,
+                                mediaType: file.type,
+                                user: auth.currentUser.displayName || auth.currentUser.email // Store the user's display name or email
+                            }).then(() => {
+                                // Clear the inputs
+                                document.getElementById("message-input").value = "";
+                                fileInput.value = ""; // Reset the file input
+                            }).catch((error) => {
+                                console.error("Error adding document: ", error);
+                            });
+                        });
+                    }).catch((error) => {
+                        console.error("Error uploading file: ", error);
+                    });
+                }
             } else if (message.trim() !== "") {
                 // If there's no file, just send the text message
                 addDoc(collection(db, "messages"), {
                     text: message,
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    user: auth.currentUser.displayName || auth.currentUser.email // Store the user's display name or email
                 }).then(() => {
                     document.getElementById("message-input").value = ""; // clear input
                 }).catch((error) => {
@@ -90,8 +139,16 @@
             }
         }
 
-        // Real-time listener for messages
-        onSnapshot(collection(db, "messages"), (snapshot) => {
+        // Format timestamp into a readable date-time format
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp.seconds * 1000); // Convert to milliseconds
+            return date.toLocaleString(); // Localized date-time format
+        }
+
+        // Real-time listener for messages, ordered by timestamp (oldest first)
+        const q = query(collection(db, "messages"), orderBy("timestamp"));
+
+        onSnapshot(q, (snapshot) => {
             const chatBox = document.getElementById("chat-box");
             chatBox.innerHTML = ""; // clear chat box
 
@@ -108,10 +165,27 @@
                     mediaElement.controls = true;
                     mediaElement.style.maxWidth = "100%";
                     messageDiv.appendChild(mediaElement);
+
+                    // For larger files, show download link
+                    if (messageData.fileSize > 10) {
+                        const downloadLink = document.createElement("a");
+                        downloadLink.href = messageData.mediaUrl;
+                        downloadLink.download = messageData.mediaUrl.split('/').pop();
+                        downloadLink.innerText = "Download File";
+                        downloadLink.style.color = "blue";
+                        messageDiv.appendChild(downloadLink);
+                    }
                 } else {
                     // Display text message
-                    messageDiv.innerText = messageData.text;
+                    messageDiv.innerText = `${messageData.user}: ${messageData.text}`;
                 }
+
+                // Add timestamp to the message in the bottom right corner
+                const timestampDiv = document.createElement("div");
+                timestampDiv.classList.add("timestamp");
+                timestampDiv.innerText = formatTimestamp(messageData.timestamp);
+                timestampDiv.style.textAlign = "right"; // Align to the right
+                messageDiv.appendChild(timestampDiv);
 
                 chatBox.appendChild(messageDiv);
             });
@@ -122,6 +196,7 @@
 
         // Add event listener to send button
         document.getElementById("send-button").addEventListener("click", sendMessage);
+        
     </script>
 </body>
 </html>

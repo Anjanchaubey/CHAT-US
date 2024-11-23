@@ -9,7 +9,13 @@
 </head>
 <body>
     <div class="chat-container">
-        <h1>Chat with Friends</h1>
+        <div class="header">
+            <h1>Chat us!</h1>
+            <div class="auth-buttons">
+                <a class="btn12" href="signup.html">SIGN UP</a>
+                <a class="btn12" href="login.html">SIGN IN</a>
+            </div>
+        </div>
         
         <!-- Display username here -->
         <div id="username-container">
@@ -26,14 +32,20 @@
             <button id="send-button">Send</button>
         </div>
     </div>
-    <a href="signup.html">SIGN UP</a>
-    <a href="login.html">SIGN IN</a>
+    
+    <!-- Progress Bar Popup -->
+    <div id="progress-popup" style="display:none;">
+        <div id="progress-container">
+            <progress id="upload-progress" value="0" max="100"></progress>
+            <span id="upload-progress-text">0%</span>
+        </div>
+    </div>
 
     <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
         // Firebase configuration
@@ -74,6 +86,9 @@
         function sendMessage() {
             const message = document.getElementById("message-input").value;
             const fileInput = document.getElementById("file-input");
+            const progressPopup = document.getElementById("progress-popup");
+            const progressBar = document.getElementById("upload-progress");
+            const progressText = document.getElementById("upload-progress-text");
 
             // If there is a file selected, upload it to Firebase Storage
             if (fileInput.files.length > 0) {
@@ -81,56 +96,54 @@
                 const fileSize = file.size / (1024 * 1024); // File size in MB
                 const storageRef = ref(storage, 'chat-files/' + file.name);
 
-                // Check if file is larger than 10MB
-                if (fileSize > 10) {
-                    // Handle large file - only allow download
-                    getDownloadURL(storageRef).then((url) => {
-                        // Save the message with the file URL and file size
-                        addDoc(collection(db, "messages"), {
-                            text: message.trim() || "Sent a large file (greater than 10MB)",
-                            timestamp: new Date(),
-                            mediaUrl: url,
-                            mediaType: file.type,
-                            fileSize: fileSize,
-                            user: auth.currentUser.displayName || auth.currentUser.email // Store the user's display name or email
-                        }).then(() => {
-                            // Clear the inputs
-                            document.getElementById("message-input").value = "";
-                            fileInput.value = ""; // Reset the file input
-                        }).catch((error) => {
-                            console.error("Error adding document: ", error);
-                        });
-                    });
-                } else {
-                    // Upload smaller files
-                    uploadBytes(storageRef, file).then((snapshot) => {
-                        // Get the download URL after upload
-                        getDownloadURL(snapshot.ref).then((url) => {
+                // Show progress popup
+                progressPopup.style.display = 'block';
+                
+                // Start the file upload
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                // Track the upload progress
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progressBar.value = progress;
+                        progressText.textContent = `${Math.round(progress)}%`;
+                    }, 
+                    (error) => {
+                        console.error("Error uploading file: ", error);
+                        // Hide progress if error occurs
+                        progressPopup.style.display = 'none';
+                    }, 
+                    () => {
+                        // Get the download URL after upload completes
+                        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
                             // Save the message with the file URL
                             addDoc(collection(db, "messages"), {
                                 text: message.trim() || "Sent a media file",
                                 timestamp: new Date(),
                                 mediaUrl: url,
                                 mediaType: file.type,
-                                user: auth.currentUser.displayName || auth.currentUser.email // Store the user's display name or email
+                                fileSize: file.size,  // Storing the file size for comparison
+                                user: auth.currentUser.displayName || auth.currentUser.email
                             }).then(() => {
-                                // Clear the inputs
+                                // Clear inputs
                                 document.getElementById("message-input").value = "";
-                                fileInput.value = ""; // Reset the file input
+                                fileInput.value = ""; // Reset file input
+
+                                // Hide progress popup after upload is done
+                                progressPopup.style.display = 'none';
                             }).catch((error) => {
                                 console.error("Error adding document: ", error);
                             });
                         });
-                    }).catch((error) => {
-                        console.error("Error uploading file: ", error);
-                    });
-                }
+                    }
+                );
             } else if (message.trim() !== "") {
                 // If there's no file, just send the text message
                 addDoc(collection(db, "messages"), {
                     text: message,
                     timestamp: new Date(),
-                    user: auth.currentUser.displayName || auth.currentUser.email // Store the user's display name or email
+                    user: auth.currentUser.displayName || auth.currentUser.email
                 }).then(() => {
                     document.getElementById("message-input").value = ""; // clear input
                 }).catch((error) => {
@@ -166,8 +179,8 @@
                     mediaElement.style.maxWidth = "100%";
                     messageDiv.appendChild(mediaElement);
 
-                    // For larger files, show download link
-                    if (messageData.fileSize > 10) {
+                    // For larger files, show download link instead of auto-download
+                    if (messageData.fileSize > (3.5 * 1024 * 1024)) { // 3.5 MB in bytes
                         const downloadLink = document.createElement("a");
                         downloadLink.href = messageData.mediaUrl;
                         downloadLink.download = messageData.mediaUrl.split('/').pop();
@@ -196,7 +209,6 @@
 
         // Add event listener to send button
         document.getElementById("send-button").addEventListener("click", sendMessage);
-        
     </script>
 </body>
 </html>

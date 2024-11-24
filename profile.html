@@ -123,51 +123,60 @@
 
         // Save changes to profile
         document.getElementById('save-changes-btn').addEventListener('click', () => {
-            const newUsername = document.getElementById('new-username').value;
-            const fileInput = document.getElementById('file-input');
-            const user = auth.currentUser;
+    const newUsername = document.getElementById('new-username').value;
+    const fileInput = document.getElementById('file-input');
+    const user = auth.currentUser;
 
-            if (user) {
-                if (fileInput.files.length > 0) {
-                    // Upload the selected file to Firebase Storage
-                    const file = fileInput.files[0];
-                    const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-                    
-                    uploadBytes(storageRef, file).then((snapshot) => {
-                        // Get the uploaded file URL
-                        getDownloadURL(snapshot.ref).then((downloadURL) => {
-                            // Update profile picture and username
-                            updateProfile(user, {
-                                displayName: newUsername,
-                                photoURL: downloadURL
-                            }).then(() => {
-                                // Successfully updated the profile
-                                document.getElementById('username-display').innerText = newUsername;
-                                document.getElementById('profile-image').src = downloadURL;
-                                alert("Profile updated successfully!");
-                            }).catch((error) => {
-                                console.error("Error updating profile: ", error);
-                                alert("Failed to update profile.");
-                            });
-                        });
-                    }).catch((error) => {
-                        console.error("Error uploading file: ", error);
-                    });
-                } else {
-                    // No file selected, just update the username
+    if (user) {
+        if (newUsername.trim() === "") {
+            alert("Username cannot be empty.");
+            return; // Prevent update if username is empty
+        }
+
+        // Handle profile picture update if a file is selected
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const storageRef = ref(storage, `profile-pictures/${user.uid}`);
+            
+            uploadBytes(storageRef, file).then((snapshot) => {
+                // Get the uploaded file URL
+                getDownloadURL(snapshot.ref).then((downloadURL) => {
+                    // Update profile picture and username
                     updateProfile(user, {
-                        displayName: newUsername
+                        displayName: newUsername,
+                        photoURL: downloadURL
                     }).then(() => {
                         // Successfully updated the profile
                         document.getElementById('username-display').innerText = newUsername;
+                        document.getElementById('profile-image').src = downloadURL;
                         alert("Profile updated successfully!");
                     }).catch((error) => {
                         console.error("Error updating profile: ", error);
                         alert("Failed to update profile.");
                     });
-                }
-            }
-        });
+                });
+            }).catch((error) => {
+                console.error("Error uploading file: ", error);
+                alert("Failed to upload profile picture.");
+            });
+        } else {
+            // No file selected, just update the username
+            updateProfile(user, {
+                displayName: newUsername
+            }).then(() => {
+                // Successfully updated the profile
+                document.getElementById('username-display').innerText = newUsername;
+                alert("Profile updated successfully!");
+            }).catch((error) => {
+                console.error("Error updating profile: ", error);
+                alert("Failed to update profile.");
+            });
+        }
+    } else {
+        alert("No user is signed in.");
+    }
+});
+
 
         // Add click event listener for logout button
         document.getElementById('logout-btn').addEventListener('click', () => {

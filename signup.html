@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign Up to Chat us!</title>
+<!-- Link to Font Awesome for Google Icon -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+
     <style>
-        /* Global styles */
-        body {
+        /* Global Styles */
+        * {
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); /* Pastel gradient background */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,92 +27,171 @@
         }
 
         .form-container {
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            padding: 40px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 40px 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
             width: 100%;
             max-width: 400px;
             text-align: center;
+            animation: fadeIn 1s ease-out;
         }
 
         h1 {
-            margin-bottom: 20px;
-            font-size: 32px;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 30px;
             color: #fff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 10px rgba(0, 0, 0, 0.6);
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #ff7e5f;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
             color: #fff;
-            font-size: 16px;
-            transition: 0.3s ease;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
         }
 
         input:focus {
             outline: none;
-            border-color: #feb47b;
-            background: rgba(255, 255, 255, 0.3);
+            border-color: #ffb6c1;
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            background: #ff7e5f;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff6ec7, #ff8a00); /* Gradient button */
             border: none;
-            border-radius: 5px;
-            color: #fff;
+            border-radius: 10px;
+            color: white;
             font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            transition: 0.3s ease;
+            transition: background 0.3s ease, transform 0.3s ease;
         }
 
         button:hover {
-            background: #feb47b;
+            background: linear-gradient(45deg, #ff8a00, #ff6ec7);
+            transform: scale(1.05);
         }
 
+        #google-signin-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #4285F4, #DB4437, #F4B400, #0F9D58); /* Google logo gradient */
+    color: white;
+    border-radius: 10px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background-size: 400% 400%;
+}
+
+#google-signin-btn:hover {
+    background-position: 100% 100%; /* Smooth gradient transition on hover */
+    transform: scale(1.05); /* Slight zoom effect on hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+#google-signin-btn i {
+    margin-right: 10px; /* Space between icon and text */
+}
+
+#google-signin-btn img {
+    width: 20px;
+    margin-right: 10px;
+}
+
+
+
+
         p {
-            margin-top: 15px;
+            margin-top: 20px;
+            font-size: 16px;
             color: #ddd;
-            font-size: 14px;
         }
 
         p a {
-            color: #feb47b;
+            color: #ff8a00;
             text-decoration: none;
+            font-weight: bold;
         }
 
         p a:hover {
             text-decoration: underline;
         }
 
-        /* Responsive Design */
+        /* Animation for form fade-in */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
         @media (max-width: 480px) {
             .form-container {
+                padding: 30px 20px;
                 width: 90%;
-                padding: 20px;
             }
 
             h1 {
-                font-size: 28px;
+                font-size: 30px;
+                margin-bottom: 20px;
+            }
+
+            button, #google-signin-btn {
+                font-size: 16px;
+                padding: 12px;
             }
         }
+        button, #google-login {
+                font-size: 16px;
+                padding: 12px;
+            }
+        
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h1>Sign Up</h1>
+        <h1>Sign Up to Chat us!</h1>
         <form id="signup-form">
             <input type="email" id="email" placeholder="Enter your email" required />
             <input type="password" id="password" placeholder="Enter your password" required />
             <input type="text" id="username" placeholder="Enter your username" required />
             <button type="submit">Sign Up</button>
         </form>
+
+        <button id="google-signin-btn">
+            <i class="fab fa-google"></i> Continue with Google
+        </button>
+
         <p>Already have an account? <a href="login.html">Login</a></p>
     </div>
 
@@ -112,7 +199,7 @@
     <script type="module">
         // Import the Firebase modules you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -155,9 +242,38 @@
                 window.location.href = "index.html";  // Redirect after successful signup
             } catch (error) {
                 console.error("Error signing up:", error.message);
-                alert("Error signing up: " + error.message);
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        alert('This email is already in use. Please use a different one.');
+                        break;
+                    case 'auth/weak-password':
+                        alert('Password should be at least 6 characters long.');
+                        break;
+                    case 'auth/invalid-email':
+                        alert('Please enter a valid email address.');
+                        break;
+                    default:
+                        alert('Error signing up: ' + error.message);
+                }
             } finally {
                 signupButton.disabled = false;  // Re-enable button after the operation
+            }
+        });
+
+        // Google Sign-In Logic
+        const googleProvider = new GoogleAuthProvider();
+        document.getElementById("google-signin-btn").addEventListener("click", async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+
+                console.log("User signed in with Google", user);
+
+                // Redirect to home page after successful Google Sign-In
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Error signing in with Google:", error.message);
+                alert('Error signing in with Google: ' + error.message);
             }
         });
     </script>

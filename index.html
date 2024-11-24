@@ -6,7 +6,20 @@
     <title>Simple Chat</title>
     <link rel="stylesheet" href="style.css">
     <style>
-       /* Custom styles for chat input area */
+        /* Custom styles for chat input area */
+        .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Full viewport height */
+}
+
+#chat-box {
+    flex-grow: 1; /* Take remaining space */
+    overflow-y: auto; /* Allow scrolling when messages overflow */
+    padding: 10px;
+    margin-bottom: 10px; /* Space between messages and input field */
+}
+
 .input-container {
     display: flex;
     align-items: center;
@@ -15,61 +28,66 @@
     border-radius: 20px;
     margin-top: 10px;
     width: 100%; /* Ensure full width */
+    position: sticky;
+    bottom: 0; /* Keep it fixed at the bottom */
+    background-color: white; /* Ensure input area is visible above chat */
+    z-index: 10; /* Ensure it's above chat box */
 }
 
-#message-input {
-    flex-grow: 1; /* Make the input field grow to take available space */
-    padding: 10px;
-    border-radius: 20px;
-    border: 1px solid #ddd;
-    margin-right: 10px;
-    outline: none;
-    font-size: 16px;
-    min-width: 200px; /* Ensure a minimum width to keep the input field readable */
-}
 
-.file-icon {
-    background: url('https://img.icons8.com/ios-filled/50/000000/document.png') no-repeat center;
-    background-size: 20px;
-    width: 30px;
-    height: 30px;
-    border: none;
-    cursor: pointer;
-    margin-right: 10px;
-}
+        #message-input {
+            flex-grow: 1; /* Make the input field grow to take available space */
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            outline: none;
+            font-size: 16px;
+            min-width: 200px; /* Ensure a minimum width to keep the input field readable */
+        }
 
-#send-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: auto; /* Allow width to fit the content */
-    height: auto; /* Allow height to fit the content */
-    padding: 0; /* Remove extra padding */
-    margin: 0; /* Remove extra margin */
-    font-size: 28px;
-}
+        .file-icon {
+            background: url('https://img.icons8.com/ios-filled/50/000000/document.png') no-repeat center;
+            background-size: 20px;
+            width: 30px;
+            height: 30px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
 
-#send-button::before {
-    content: "➤";  /* Using an arrow as the send button */
-    font-size: 40px;
-    color: #4CAF50;
-}
+        #send-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: auto; /* Allow width to fit the content */
+            height: auto; /* Allow height to fit the content */
+            padding: 0; /* Remove extra padding */
+            margin: 0; /* Remove extra margin */
+            font-size: 28px;
+        }
 
-/* Profile Logo Styling */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-}
+        #send-button::before {
+            content: "➤";  /* Using an arrow as the send button */
+            font-size: 40px;
+            color: #4CAF50;
+        }
 
-#profile-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    margin-left: 0px; /* Space between header content and logo */
-}
+        /* Profile Logo Styling */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+
+        #profile-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 0px; /* Space between header content and logo */
+        }
 
     </style>
 </head>
@@ -85,19 +103,20 @@
                 <img src="profile-placeholder.png" alt="Profile" id="profile-logo">
             </a>
         </div>
-        
+
         <div id="chat-box" class="chat-box">
             <!-- Messages will be displayed here -->
-        </div>          
+        </div>
 
         <div class="input-container">
             <button class="file-icon" id="file-button"></button>
+            <input type="file" id="file-input" style="display: none;" />
             <input type="text" id="message-input" placeholder="Type your message..." />
             <button id="send-button"></button>
         </div>
-        
+
     </div>
-    
+
     <div id="progress-popup" style="display:none;">
         <div id="progress-container">
             <progress id="upload-progress" value="0" max="100"></progress>
@@ -137,7 +156,7 @@
 
         function sendMessage() {
             const message = document.getElementById("message-input").value;
-            const fileInput = document.querySelector('input[type="file"]'); // This will target the dynamically created input
+            const fileInput = document.getElementById("file-input");
             const progressPopup = document.getElementById("progress-popup");
             const progressBar = document.getElementById("upload-progress");
             const progressText = document.getElementById("upload-progress-text");
@@ -149,15 +168,15 @@
                 progressPopup.style.display = 'block';
                 const uploadTask = uploadBytesResumable(storageRef, file);
 
-                uploadTask.on('state_changed', 
+                uploadTask.on('state_changed',
                     (snapshot) => {
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                         progressBar.value = progress;
                         progressText.textContent = `${Math.round(progress)}%`;
-                    }, 
+                    },
                     (error) => {
                         progressPopup.style.display = 'none';
-                    }, 
+                    },
                     () => {
                         getDownloadURL(uploadTask.snapshot.ref).then((url) => {
                             addDoc(collection(db, "messages"), {
@@ -210,7 +229,6 @@
                 usernameDiv.classList.add("username");
                 usernameDiv.textContent = messageData.user;
                 usernameDiv.style.cursor = "pointer";  // Make the username clickable
-                // Add event listener to redirect to the user's specific chat
                 usernameDiv.addEventListener("click", () => {
                     window.location.href = `chat.html?username=${messageData.user}`;
                 });
@@ -235,16 +253,19 @@
                         mediaContainer.appendChild(mediaElement);
                     } else if (messageData.mediaType.includes("pdf")) {
                         const pdfText = document.createElement("span");
-                        pdfText.textContent = "PDF File";
+                        pdfText.textContent = "PDF File: Click to view";
+                        pdfText.style.color = "blue";
+                        pdfText.style.cursor = "pointer";
+                        pdfText.addEventListener("click", () => window.open(messageData.mediaUrl, '_blank'));
                         mediaContainer.appendChild(pdfText);
                     }
-
                     messageDiv.appendChild(mediaContainer);
+                } else {
+                    const textDiv = document.createElement("div");
+                    textDiv.classList.add("message-text");
+                    textDiv.textContent = messageData.text;
+                    messageDiv.appendChild(textDiv);
                 }
-
-                const messageText = document.createElement("p");
-                messageText.textContent = messageData.text;
-                messageDiv.appendChild(messageText);
 
                 const timestampDiv = document.createElement("div");
                 timestampDiv.classList.add("timestamp");
@@ -253,9 +274,23 @@
 
                 chatBox.appendChild(messageDiv);
             });
-
             chatBox.scrollTop = chatBox.scrollHeight;
         });
+
+        // Event listener for the file button to open file input dialog
+document.getElementById("file-button").addEventListener("click", () => {
+    document.getElementById("file-input").click();  // Trigger the file input click
+});
+
+// Add event listener for file input to handle file selection
+document.getElementById("file-input").addEventListener("change", (event) => {
+    const file = event.target.files[0];  // Get the selected file
+    if (file) {
+        // Optional: Add logic to preview or handle the file before sending
+        console.log("File selected:", file.name);
+    }
+});
+
     </script>
 </body>
 </html>

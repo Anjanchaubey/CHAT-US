@@ -5,19 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <style>
-        /* Add your CSS styling here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .profile-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
         .profile-header {
             display: flex;
             align-items: center;
-            justify-content: left;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 20px;
         }
+
         .profile-image {
             border-radius: 50%;
             width: 100px;
             height: 100px;
+            object-fit: cover;
         }
-        /* Style for logout button */
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .profile-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Edit Profile Button */
+        .edit-btn, .save-btn {
+            padding: 12px 25px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .edit-btn:hover, .save-btn:hover {
+            background-color: #004d99;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Profile Edit Section */
+        .profile-edit-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .input-field, .file-input {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .file-input {
+            padding: 5px;
+        }
+
+        /* Logout Button */
         .logout-btn {
             padding: 10px 20px;
             background-color: red;
@@ -26,57 +116,50 @@
             cursor: pointer;
             margin-top: 20px;
             font-size: 16px;
+            border-radius: 5px;
+            width: 100%;
         }
+
         .logout-btn:hover {
             background-color: darkred;
         }
-        .edit-btn {
-            margin-top: 10px;
-            background-color: blue;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-        }
-        .edit-btn:hover {
-            background-color: darkblue;
-        }
+
+        /* Aesthetic Tweaks */
         .profile-edit-section {
-            display: none;
-            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
-        .input-field {
-            padding: 8px;
-            margin: 5px;
-            width: 200px;
-        }
-        .file-input {
-            margin: 5px;
-        }
+
     </style>
 </head>
 <body>
-    <div class="profile-header">
-        <img src="images/default-profile-pic.jpg" alt="Profile Picture" class="profile-image" id="profile-image">
-        <div>
-            <h1 id="username-display">User Name</h1>
-            <p id="email-display">Email</p>
-            <p id="join-date">Join Date</p>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <img src="images/default-profile-pic.jpg" alt="Profile Picture" class="profile-image" id="profile-image">
+            <div class="profile-info">
+                <h1 id="username-display">User Name</h1>
+                <p id="email-display">Email</p>
+                <p id="join-date">Join Date</p>
+            </div>
         </div>
+
+        <!-- Edit Profile Button -->
+        <button class="edit-btn" id="edit-btn">Edit Profile</button>
+
+        <!-- Profile Edit Section -->
+        <div class="profile-edit-section" id="profile-edit-section">
+            <input type="text" class="input-field" id="new-username" placeholder="Enter new username">
+            <input type="file" class="file-input" id="file-input" accept="image/*">
+            <button class="save-btn" id="save-changes-btn">Save Changes</button>
+            <div class="loading-spinner" id="loading-spinner"></div>
+        </div>
+
+        <!-- Logout Button -->
+        <button class="logout-btn" id="logout-btn">Logout</button>
     </div>
-
-    <!-- Edit Profile Button -->
-    <button class="edit-btn" id="edit-btn">Edit Profile</button>
-
-    <!-- Profile Edit Section -->
-    <div class="profile-edit-section" id="profile-edit-section">
-        <input type="text" class="input-field" id="new-username" placeholder="Enter new username">
-        <input type="file" class="file-input" id="file-input" accept="image/*">
-        <button class="edit-btn" id="save-changes-btn">Save Changes</button>
-    </div>
-
-    <!-- Logout Button -->
-    <button class="logout-btn" id="logout-btn">Logout</button>
 
     <!-- Firebase App and Auth SDK -->
     <script type="module">
@@ -122,14 +205,18 @@
         });
 
         // Save changes to profile
-        document.getElementById('save-changes-btn').addEventListener('click', () => {
+document.getElementById('save-changes-btn').addEventListener('click', () => {
     const newUsername = document.getElementById('new-username').value;
     const fileInput = document.getElementById('file-input');
     const user = auth.currentUser;
 
+    // Show loading spinner
+    document.getElementById('loading-spinner').style.display = 'block';
+
     if (user) {
         if (newUsername.trim() === "") {
             alert("Username cannot be empty.");
+            document.getElementById('loading-spinner').style.display = 'none';
             return; // Prevent update if username is empty
         }
 
@@ -150,42 +237,48 @@
                         document.getElementById('username-display').innerText = newUsername;
                         document.getElementById('profile-image').src = downloadURL;
                         alert("Profile updated successfully!");
+                        
+                        // Hide the edit section after update
+                        document.getElementById('profile-edit-section').style.display = 'none';
+                        document.getElementById('loading-spinner').style.display = 'none';
                     }).catch((error) => {
                         console.error("Error updating profile: ", error);
                         alert("Failed to update profile.");
+                        document.getElementById('loading-spinner').style.display = 'none';
                     });
                 });
             }).catch((error) => {
                 console.error("Error uploading file: ", error);
                 alert("Failed to upload profile picture.");
+                document.getElementById('loading-spinner').style.display = 'none';
             });
         } else {
-            // No file selected, just update the username
+            // Update only the username if no new file is uploaded
             updateProfile(user, {
                 displayName: newUsername
             }).then(() => {
-                // Successfully updated the profile
                 document.getElementById('username-display').innerText = newUsername;
                 alert("Profile updated successfully!");
+
+                // Hide the edit section after update
+                document.getElementById('profile-edit-section').style.display = 'none';
+                document.getElementById('loading-spinner').style.display = 'none';
             }).catch((error) => {
                 console.error("Error updating profile: ", error);
                 alert("Failed to update profile.");
+                document.getElementById('loading-spinner').style.display = 'none';
             });
         }
-    } else {
-        alert("No user is signed in.");
     }
 });
 
 
-        // Add click event listener for logout button
+        // Logout functionality
         document.getElementById('logout-btn').addEventListener('click', () => {
             signOut(auth).then(() => {
-                // Redirect to login page after successful logout
-                console.log("User signed out");
-                window.location.href = 'login.html';
+                window.location.href = 'login.html';  // Redirect to login page after logout
             }).catch((error) => {
-                console.error("Error signing out: ", error);
+                console.error("Logout failed: ", error);
             });
         });
     </script>

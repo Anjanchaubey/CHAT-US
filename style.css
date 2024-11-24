@@ -366,7 +366,7 @@ p {
     font-weight: bold;           /* Bold for the username */
     color: #007bff;              /* Blue color for the username */
     text-transform: capitalize;  /* Capitalizes the first letter */
-    margin-left: 5px;            /* Space between 'Welcome' and the username */
+    margin-left: 0px;            /* Space between 'Welcome' and the username */
     transition: color 0.3s ease; /* Smooth transition on hover */
 }
 
@@ -433,3 +433,163 @@ progress::-moz-progress-bar {
     font-weight: bold;
 }
 
+.username {
+    font-weight: bold;
+    color: #2196f3;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; /* You can change this to any bold font */
+}
+
+.message.user-1 {
+    background-color: #ffc107;
+    align-self: flex-start;
+}
+
+.message.user-2 {
+    background-color: #4caf50;
+    align-self: flex-end;
+}
+.pdf-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff; /* Blue color */
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.file-name {
+    color: #333; /* Dark text for file name */
+    text-decoration: underline;
+}
+
+.download-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.download-btn:hover {
+    background-color: #0056b3;
+}
+.timestamp {
+    font-size: 0.8em;
+    color: #888;
+    text-align: right;
+}
+/* Header Styles */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;  /* Distribute space evenly, pushing profile to the right */
+    padding: 10px 20px;  /* Add some padding */
+    background-color: #333;  /* Optional: Add background color */
+    color: white;  /* Optional: Text color */
+}
+
+/* Profile Section Styles */
+.profile-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background-color: #4CAF50;  /* Change color as needed */
+    border-radius: 50%;
+    margin-left: 15px;  /* Add spacing between the profile and the auth buttons */
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Buttons Style */
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+}
+/* Profile Button */
+#profile-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+/* Profile Popup */
+.profile-popup {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0, 0, 0, 0.4); /* Black with opacity */
+    overflow: auto; /* Enable scrolling if needed */
+}
+
+/* Popup Content */
+.profile-popup-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 10px;
+}
+
+/* Close Button */
+.close-btn {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    float: right;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Logout Button */
+#logout-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logout-button:hover {
+    background-color: #45a049;
+}
+/* Style for profile photo */
+.profile-photo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+/* Container for profile image and text */
+.profile-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px; /* To add some space between the profile photo and the message */
+}

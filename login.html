@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login to Chat us!</title>
+
+    <!-- Link to Font Awesome for Google Icon -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
     <style>
         /* General Reset */
         * {
@@ -14,7 +18,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #f4f7fc;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,46 +28,62 @@
 
         .form-container {
             background-color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 40px;
             width: 100%;
             max-width: 400px;
             text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
-            font-size: 28px;
+            font-size: 32px;
             color: #333;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            font-weight: 600;
         }
 
         input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
+            padding: 15px;
+            margin: 12px 0;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 16px;
+            background-color: #f9f9f9;
             transition: all 0.3s ease;
         }
 
         input:focus {
             border-color: #4CAF50;
             outline: none;
-            box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);
+            background-color: #ffffff;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 18px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -73,29 +93,58 @@
         p {
             margin-top: 20px;
             font-size: 14px;
-            color: #666;
+            color: #888;
         }
 
         a {
             color: #4CAF50;
             text-decoration: none;
+            font-weight: 500;
         }
 
         a:hover {
             text-decoration: underline;
         }
 
+        /* Google Sign-In Button */
+        #google-login {
+            background-color: #4285F4;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            transition: background-color 0.3s ease;
+            font-family: 'Arial', sans-serif;
+        }
+
+        #google-login:hover {
+            background-color: #357AE8;
+        }
+
+        #google-login i {
+            font-size: 20px;
+        }
+
+        /* Animation for User Info */
         #user-info {
             margin-top: 20px;
             display: none;
         }
 
         #logout-button {
-            padding: 10px 20px;
+            padding: 12px 20px;
             background-color: #f44336;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
             transition: all 0.3s ease;
@@ -104,18 +153,46 @@
         #logout-button:hover {
             background-color: #e53935;
         }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 20px;
+                max-width: 90%;
+            }
+
+            h1 {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+
+            input {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            button, #google-login {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h1>Login</h1>
+        <h1>Login to Chat us!</h1>
         <form id="login-form">
             <input type="email" id="email" placeholder="Enter your email" required />
             <input type="password" id="password" placeholder="Enter your password" required />
             <button type="submit">Login</button>
         </form>
-        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+        <p><b>Don't have an account?</b> <a href="signup.html">Sign Up</a></p>
         
+        <!-- Google Sign-In Button -->
+        <button id="google-login">
+            <i class="fab fa-google"></i> Continue with Google
+        </button>
+
         <!-- Display username if logged in -->
         <div id="user-info">
             <h2>Welcome, <span id="username"></span>!</h2>
@@ -127,7 +204,7 @@
     <script type="module">
         // Import the Firebase modules you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -143,6 +220,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
         // Handle login form submission
         document.getElementById("login-form").addEventListener("submit", async (event) => {
@@ -170,6 +248,20 @@
             }
         });
 
+        // Handle Google Sign-In
+        document.getElementById("google-login").addEventListener("click", async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                console.log("User logged in with Google:", user);
+
+                // Redirect to home page or dashboard
+                window.location.href = "index.html";
+            } catch (error) {
+                console.error("Error logging in with Google:", error.message);
+            }
+        });
+
         // Check if a user is logged in and show their username
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -190,6 +282,7 @@
         document.getElementById("logout-button")?.addEventListener("click", async () => {
             try {
                 await signOut(auth);
+                alert("You have logged out successfully");
                 window.location.href = "login.html";  // Redirect to login page after logout
             } catch (error) {
                 console.error("Error logging out:", error.message);

@@ -5,21 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Chat</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase CDN Scripts -->
+    <style>
+       /* Custom styles for chat input area */
+.input-container {
+    display: flex;
+    align-items: center;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+    width: 100%; /* Ensure full width */
+}
+
+#message-input {
+    flex-grow: 1; /* Make the input field grow to take available space */
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+    outline: none;
+    font-size: 16px;
+    min-width: 200px; /* Ensure a minimum width to keep the input field readable */
+}
+
+.file-icon {
+    background: url('https://img.icons8.com/ios-filled/50/000000/document.png') no-repeat center;
+    background-size: 20px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+#send-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: auto; /* Allow width to fit the content */
+    height: auto; /* Allow height to fit the content */
+    padding: 0; /* Remove extra padding */
+    margin: 0; /* Remove extra margin */
+    font-size: 28px;
+}
+
+#send-button::before {
+    content: "➤";  /* Using an arrow as the send button */
+    font-size: 40px;
+    color: #4CAF50;
+}
+
+/* Profile Logo Styling */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+}
+
+#profile-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    margin-left: 0px; /* Space between header content and logo */
+}
+
+    </style>
 </head>
 <body>
     <div class="chat-container">
         <div class="header">
             <h1>Chat us!</h1>
-            <div class="auth-buttons">
-                <a class="btn12" href="signup.html">SIGN UP</a>
-                <a class="btn12" href="login.html">SIGN IN</a>
+            <div id="username-container">
+                <p>Welcome, <span id="username-display">User</span></p>
             </div>
-        </div>
-        
-        <!-- Display username here -->
-        <div id="username-container">
-            <p>Welcome, <span id="username-display">User</span></p>
+            <!-- Profile Logo, clickable to navigate to profile page -->
+            <a href="profile.html">
+                <img src="profile-placeholder.png" alt="Profile" id="profile-logo">
+            </a>
         </div>
         
         <div id="chat-box" class="chat-box">
@@ -27,13 +91,13 @@
         </div>          
 
         <div class="input-container">
-            <input type="text" id="message-input" placeholder="Type your message...">
-            <input type="file" id="file-input" accept="image/*,video/*,application/*"> <!-- File input for media -->
-            <button id="send-button">Send</button>
+            <button class="file-icon" id="file-button"></button>
+            <input type="text" id="message-input" placeholder="Type your message..." />
+            <button id="send-button"></button>
         </div>
+        
     </div>
     
-    <!-- Progress Bar Popup -->
     <div id="progress-popup" style="display:none;">
         <div id="progress-container">
             <progress id="upload-progress" value="0" max="100"></progress>
@@ -41,14 +105,12 @@
         </div>
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, orderBy, query } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
         import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCYY2GQqS0tCXb7Oxw8AWXhpexq9e8VRUs",
             authDomain: "aspirehub-32863.firebaseapp.com",
@@ -59,50 +121,34 @@
             measurementId: "G-KX41R0SSMY"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const storage = getStorage(app);
         const auth = getAuth(app);
 
-        // Auth state listener
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Set username in the display
                 const usernameDisplay = document.getElementById('username-display');
-                if (user.displayName) {
-                    usernameDisplay.innerText = user.displayName; // Display user's set display name
-                } else {
-                    usernameDisplay.innerText = user.email.split('@')[0]; // Use email prefix if no username
-                }
-                console.log("User logged in:", user.email);
+                usernameDisplay.innerText = user.displayName || user.email.split('@')[0];
             } else {
-                console.log("No user logged in");
-                window.location.href = "login.html"; // Redirect to login page if not logged in
+                window.location.href = "login.html";
             }
         });
 
-        // Send message function
         function sendMessage() {
             const message = document.getElementById("message-input").value;
-            const fileInput = document.getElementById("file-input");
+            const fileInput = document.querySelector('input[type="file"]'); // This will target the dynamically created input
             const progressPopup = document.getElementById("progress-popup");
             const progressBar = document.getElementById("upload-progress");
             const progressText = document.getElementById("upload-progress-text");
 
-            // If there is a file selected, upload it to Firebase Storage
-            if (fileInput.files.length > 0) {
+            if (fileInput && fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const fileSize = file.size / (1024 * 1024); // File size in MB
                 const storageRef = ref(storage, 'chat-files/' + file.name);
 
-                // Show progress popup
                 progressPopup.style.display = 'block';
-                
-                // Start the file upload
                 const uploadTask = uploadBytesResumable(storageRef, file);
 
-                // Track the upload progress
                 uploadTask.on('state_changed', 
                     (snapshot) => {
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -110,105 +156,106 @@
                         progressText.textContent = `${Math.round(progress)}%`;
                     }, 
                     (error) => {
-                        console.error("Error uploading file: ", error);
-                        // Hide progress if error occurs
                         progressPopup.style.display = 'none';
                     }, 
                     () => {
-                        // Get the download URL after upload completes
                         getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                            // Save the message with the file URL
                             addDoc(collection(db, "messages"), {
                                 text: message.trim() || "Sent a media file",
                                 timestamp: new Date(),
                                 mediaUrl: url,
                                 mediaType: file.type,
-                                fileSize: file.size,  // Storing the file size for comparison
                                 user: auth.currentUser.displayName || auth.currentUser.email
                             }).then(() => {
-                                // Clear inputs
                                 document.getElementById("message-input").value = "";
-                                fileInput.value = ""; // Reset file input
-
-                                // Hide progress popup after upload is done
+                                fileInput.value = "";
                                 progressPopup.style.display = 'none';
                             }).catch((error) => {
-                                console.error("Error adding document: ", error);
+                                console.error("Error: ", error);
                             });
                         });
                     }
                 );
             } else if (message.trim() !== "") {
-                // If there's no file, just send the text message
                 addDoc(collection(db, "messages"), {
                     text: message,
                     timestamp: new Date(),
                     user: auth.currentUser.displayName || auth.currentUser.email
                 }).then(() => {
-                    document.getElementById("message-input").value = ""; // clear input
+                    document.getElementById("message-input").value = "";
                 }).catch((error) => {
                     console.error("Error adding document: ", error);
                 });
             }
         }
 
-        // Format timestamp into a readable date-time format
+        document.getElementById("send-button").addEventListener("click", sendMessage);
+
         function formatTimestamp(timestamp) {
-            const date = new Date(timestamp.seconds * 1000); // Convert to milliseconds
-            return date.toLocaleString(); // Localized date-time format
+            const date = new Date(timestamp.seconds * 1000);
+            return date.toLocaleString();
         }
 
-        // Real-time listener for messages, ordered by timestamp (oldest first)
         const q = query(collection(db, "messages"), orderBy("timestamp"));
-
         onSnapshot(q, (snapshot) => {
             const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML = ""; // clear chat box
+            chatBox.innerHTML = "";
 
             snapshot.forEach((doc) => {
                 const messageDiv = document.createElement("div");
                 messageDiv.classList.add("message");
 
                 const messageData = doc.data();
+                const usernameDiv = document.createElement("div");
+                usernameDiv.classList.add("username");
+                usernameDiv.textContent = messageData.user;
+                usernameDiv.style.cursor = "pointer";  // Make the username clickable
+                // Add event listener to redirect to the user's specific chat
+                usernameDiv.addEventListener("click", () => {
+                    window.location.href = `chat.html?username=${messageData.user}`;
+                });
+                messageDiv.appendChild(usernameDiv);
 
                 if (messageData.mediaUrl) {
-                    // Display media (image or video)
-                    const mediaElement = document.createElement(messageData.mediaType.includes("image") ? "img" : "video");
-                    mediaElement.src = messageData.mediaUrl;
-                    mediaElement.controls = true;
-                    mediaElement.style.maxWidth = "100%";
-                    messageDiv.appendChild(mediaElement);
+                    const mediaContainer = document.createElement("div");
+                    mediaContainer.classList.add("media-container");
 
-                    // For larger files, show download link instead of auto-download
-                    if (messageData.fileSize > (3.5 * 1024 * 1024)) { // 3.5 MB in bytes
-                        const downloadLink = document.createElement("a");
-                        downloadLink.href = messageData.mediaUrl;
-                        downloadLink.download = messageData.mediaUrl.split('/').pop();
-                        downloadLink.innerText = "Download File";
-                        downloadLink.style.color = "blue";
-                        messageDiv.appendChild(downloadLink);
+                    let mediaElement;
+                    if (messageData.mediaType.includes("image")) {
+                        mediaElement = document.createElement("img");
+                        mediaElement.src = messageData.mediaUrl;
+                        mediaElement.alt = "Image";
+                        mediaElement.style.maxWidth = "100%";
+                        mediaContainer.appendChild(mediaElement);
+                    } else if (messageData.mediaType.includes("video")) {
+                        mediaElement = document.createElement("video");
+                        mediaElement.src = messageData.mediaUrl;
+                        mediaElement.controls = true;
+                        mediaElement.style.maxWidth = "100%";
+                        mediaContainer.appendChild(mediaElement);
+                    } else if (messageData.mediaType.includes("pdf")) {
+                        const pdfText = document.createElement("span");
+                        pdfText.textContent = "PDF File";
+                        mediaContainer.appendChild(pdfText);
                     }
-                } else {
-                    // Display text message
-                    messageDiv.innerText = `${messageData.user}: ${messageData.text}`;
+
+                    messageDiv.appendChild(mediaContainer);
                 }
 
-                // Add timestamp to the message in the bottom right corner
+                const messageText = document.createElement("p");
+                messageText.textContent = messageData.text;
+                messageDiv.appendChild(messageText);
+
                 const timestampDiv = document.createElement("div");
                 timestampDiv.classList.add("timestamp");
-                timestampDiv.innerText = formatTimestamp(messageData.timestamp);
-                timestampDiv.style.textAlign = "right"; // Align to the right
+                timestampDiv.textContent = formatTimestamp(messageData.timestamp);
                 messageDiv.appendChild(timestampDiv);
 
                 chatBox.appendChild(messageDiv);
             });
 
-            // Scroll to bottom
             chatBox.scrollTop = chatBox.scrollHeight;
         });
-
-        // Add event listener to send button
-        document.getElementById("send-button").addEventListener("click", sendMessage);
     </script>
 </body>
 </html>

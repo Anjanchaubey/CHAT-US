@@ -200,13 +200,12 @@ input[type="file"]::-webkit-file-upload-button:hover {
 }
 
 /* Fullscreen Layout */
-@media (min-width: 1024px) {
-    body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0;
+@media (max-width: 768px) {
+    .input-container {
+        padding: 8px;
+        font-size: 14px;
     }
+}
 
     .chat-container {
         width: 100%;
@@ -234,7 +233,9 @@ input[type="file"]::-webkit-file-upload-button:hover {
         width: 100%;
         margin-bottom: 10px;
     }
-}
+    body {
+        padding-bottom: 60px; /* Adjust this based on the height of your input container */
+    }
 
 /* Modal Styling for Image/Video */
 .modal {
@@ -593,3 +594,4 @@ progress::-moz-progress-bar {
     align-items: center;
     margin-bottom: 10px; /* To add some space between the profile photo and the message */
 }
+

@@ -157,9 +157,11 @@ function sendBlast() {
 
 
 const q = query(collection(db, "Blast"), orderBy("timestamp", "desc"));
+// Modified section inside onSnapshot listener to handle PDF downloads
+// Modified section inside onSnapshot listener to handle PDF downloads with clean names
 onSnapshot(q, (snapshot) => {
     const BlastBox = document.getElementById("Blast-box");
-    BlastBox.innerHTML = "";  // Clear current Blast
+    BlastBox.innerHTML = "";  // Clear current Blasts
 
     snapshot.forEach((doc) => {
         const BlastData = doc.data();
@@ -178,10 +180,12 @@ onSnapshot(q, (snapshot) => {
         menuDiv.onclick = () => showDeleteOption(BlastData, doc.id);
         BlastDiv.appendChild(menuDiv);
 
+        // Check if mediaUrl exists and display accordingly
         if (BlastData.mediaUrl) {
             const mediaContainer = document.createElement("div");
             mediaContainer.classList.add("media-container");
 
+            // Check for media type and display image, video or PDF accordingly
             if (BlastData.mediaType.includes("image")) {
                 const img = document.createElement("img");
                 img.src = BlastData.mediaUrl;
@@ -191,6 +195,14 @@ onSnapshot(q, (snapshot) => {
                 video.src = BlastData.mediaUrl;
                 video.controls = true;
                 mediaContainer.appendChild(video);
+            } else if (BlastData.mediaType.includes("pdf")) {
+                // For PDF, show a download link with the cleaned file name
+                const pdfFileName = decodeURIComponent(BlastData.mediaUrl.split('/').pop().split('?')[0]); // Decode the file name from the URL
+                const pdfLink = document.createElement("a");
+                pdfLink.href = BlastData.mediaUrl;
+                pdfLink.target = "_blank";
+                pdfLink.textContent = `Download PDF: ${pdfFileName}`; // Display clean file name
+                mediaContainer.appendChild(pdfLink);
             }
 
             BlastDiv.appendChild(mediaContainer);
@@ -209,6 +221,8 @@ onSnapshot(q, (snapshot) => {
         BlastBox.appendChild(BlastDiv);
     });
 });
+
+
 
 // Show delete option if the Blast belongs to the logged-in user
 // Show delete option if the Blast belongs to the logged-in user

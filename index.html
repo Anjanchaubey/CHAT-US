@@ -5,118 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Chat</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* Custom styles for chat input area */
-        .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh; /* Full viewport height */
-}
-
-#chat-box {
-    flex-grow: 1; /* Take remaining space */
-    overflow-y: auto; /* Allow scrolling when messages overflow */
-    padding: 10px;
-    margin-bottom: 10px; /* Space between messages and input field */
-}
-
-.input-container {
-    display: flex;
-    align-items: center;
-    background-color: #f1f1f1;
-    padding: 10px;
-    border-radius: 20px;
-    margin-top: 10px;
-    width: 100%; /* Ensure full width */
-    position: sticky;
-    bottom: 0; /* Keep it fixed at the bottom */
-    background-color: white; /* Ensure input area is visible above chat */
-    z-index: 10; /* Ensure it's above chat box */
-}
-
-
-        #message-input {
-            flex-grow: 1; /* Make the input field grow to take available space */
-            padding: 10px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            margin-right: 10px;
-            outline: none;
-            font-size: 16px;
-            min-width: 200px; /* Ensure a minimum width to keep the input field readable */
-        }
-
-        .file-icon {
-            background: url('https://img.icons8.com/ios-filled/50/000000/document.png') no-repeat center;
-            background-size: 20px;
-            width: 30px;
-            height: 30px;
-            border: none;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        #send-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            width: auto; /* Allow width to fit the content */
-            height: auto; /* Allow height to fit the content */
-            padding: 0; /* Remove extra padding */
-            margin: 0; /* Remove extra margin */
-            font-size: 28px;
-        }
-
-        #send-button::before {
-            content: "➤";  /* Using an arrow as the send button */
-            font-size: 40px;
-            color: #4CAF50;
-        }
-
-        /* Profile Logo Styling */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-        }
-
-        #profile-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            margin-left: 0px; /* Space between header content and logo */
-        }
-        header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Aligns to the left */
-    padding: 0; /* Removes any extra padding/margin */
-    margin: 0; /* Ensures no margin is added */
-}
-
-.logo {
-    width: 100px;  /* Adjust size as necessary */
-    height: auto;
-}
-
-
-
-    </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="header">
-            <img src="logo.png" alt="Logo" class="logo">
-            <div id="username-container">
-                <p>Welcome, <span id="username-display">User</span></p>
-            </div>
-            <!-- Profile Logo, clickable to navigate to profile page -->
-            <a href="profile.html">
-                <img src="profile-placeholder.png" alt="Profile" id="profile-logo">
-            </a>
+    <div class="header">
+        <!-- Left Section: Clear Chat Button -->
+        <button id="clear-chat-button">Clear Chat</button>
+    
+        <!-- Right Section: Logo and Username -->
+        <div id="username-container">
+            <p>Welcome, <span id="username-display">User</span></p>
+            <!-- Update the logo image source here -->
+            <img src="logo.png" alt="Profile" id="profile-logo" />
         </div>
+    </div>
 
         <div id="chat-box" class="chat-box">
             <!-- Messages will be displayed here -->
@@ -161,66 +62,76 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // Update the username
                 const usernameDisplay = document.getElementById('username-display');
                 usernameDisplay.innerText = user.displayName || user.email.split('@')[0];
+                
+                // Dynamically change the profile image if available in the user's profile
+                const profileImage = user.photoURL || 'default-logo.png'; // Use default if no profile image
+                document.getElementById('profile-logo').src = profileImage;
             } else {
                 window.location.href = "login.html";
             }
         });
 
         function sendMessage() {
-            const message = document.getElementById("message-input").value;
-            const fileInput = document.getElementById("file-input");
-            const progressPopup = document.getElementById("progress-popup");
-            const progressBar = document.getElementById("upload-progress");
-            const progressText = document.getElementById("upload-progress-text");
+    const message = document.getElementById("message-input").value;
+    const fileInput = document.getElementById("file-input");
+    const progressPopup = document.getElementById("progress-popup");
+    const progressBar = document.getElementById("upload-progress");
+    const progressText = document.getElementById("upload-progress-text");
 
-            if (fileInput && fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const storageRef = ref(storage, 'chat-files/' + file.name);
+    const userPhotoURL = auth.currentUser.photoURL || 'default-logo.png'; // Get user photo or default
 
-                progressPopup.style.display = 'block';
-                const uploadTask = uploadBytesResumable(storageRef, file);
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const storageRef = ref(storage, 'chat-files/' + file.name);
 
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        progressBar.value = progress;
-                        progressText.textContent = `${Math.round(progress)}%`;
-                    },
-                    (error) => {
+        progressPopup.style.display = 'block';
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                progressBar.value = progress;
+                progressText.textContent = `${Math.round(progress)}%`;
+            },
+            (error) => {
+                progressPopup.style.display = 'none';
+            },
+            () => {
+                getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                    addDoc(collection(db, "messages"), {
+                        text: message.trim() || "Sent a media file",
+                        timestamp: new Date(),
+                        mediaUrl: url,
+                        mediaType: file.type,
+                        user: auth.currentUser.displayName || auth.currentUser.email,
+                        userPhotoURL: userPhotoURL // Save photoURL here
+                    }).then(() => {
+                        document.getElementById("message-input").value = "";
+                        fileInput.value = "";
                         progressPopup.style.display = 'none';
-                    },
-                    () => {
-                        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-                            addDoc(collection(db, "messages"), {
-                                text: message.trim() || "Sent a media file",
-                                timestamp: new Date(),
-                                mediaUrl: url,
-                                mediaType: file.type,
-                                user: auth.currentUser.displayName || auth.currentUser.email
-                            }).then(() => {
-                                document.getElementById("message-input").value = "";
-                                fileInput.value = "";
-                                progressPopup.style.display = 'none';
-                            }).catch((error) => {
-                                console.error("Error: ", error);
-                            });
-                        });
-                    }
-                );
-            } else if (message.trim() !== "") {
-                addDoc(collection(db, "messages"), {
-                    text: message,
-                    timestamp: new Date(),
-                    user: auth.currentUser.displayName || auth.currentUser.email
-                }).then(() => {
-                    document.getElementById("message-input").value = "";
-                }).catch((error) => {
-                    console.error("Error adding document: ", error);
+                    }).catch((error) => {
+                        console.error("Error: ", error);
+                    });
                 });
             }
-        }
+        );
+    } else if (message.trim() !== "") {
+        addDoc(collection(db, "messages"), {
+            text: message,
+            timestamp: new Date(),
+            user: auth.currentUser.displayName || auth.currentUser.email,
+            userPhotoURL: userPhotoURL // Save photoURL here
+        }).then(() => {
+            document.getElementById("message-input").value = "";
+        }).catch((error) => {
+            console.error("Error adding document: ", error);
+        });
+    }
+}
+
 
         document.getElementById("send-button").addEventListener("click", sendMessage);
 
@@ -295,14 +206,29 @@
 
         
         // Create the download button
-        const downloadButton = document.createElement("button");
-        downloadButton.classList.add("download-button");
-        downloadButton.addEventListener("click", () => {
-            const link = document.createElement('a');
-            link.href = messageData.mediaUrl;
-            link.download = messageData.mediaUrl.split('/').pop(); // Use file name from URL
-            link.click();
-        });
+const downloadButton = document.createElement("button");
+downloadButton.classList.add("download-button");
+downloadButton.textContent = "⬇"; // Add text to the button
+
+// Set up the download action
+downloadButton.addEventListener("click", () => {
+    const link = document.createElement('a');
+    link.href = messageData.mediaUrl;
+    link.download = messageData.mediaUrl.split('/').pop(); // Use file name from URL
+    link.click();
+});
+
+// Append the download button next to the timestamp
+const timestampDiv = document.createElement("div");
+timestampDiv.classList.add("timestamp");
+timestampDiv.textContent = formatTimestamp(messageData.timestamp);
+
+// Add the download button to the timestamp area
+timestampDiv.appendChild(downloadButton);
+
+// Append timestamp and download button to the message container
+messageDiv.appendChild(timestampDiv);
+
 
         // Append download button to the media container
         mediaContainer.appendChild(downloadButton);
@@ -339,10 +265,105 @@ document.getElementById("file-input").addEventListener("change", (event) => {
     }
 });
 
+// clear chat 
+
+import { deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+document.getElementById("clear-chat-button").addEventListener("click", clearChat);
+
+async function clearChat() {
+    const enteredPassword = prompt("Enter password to clear the chat:");
+
+    // Check if the password matches
+    if (enteredPassword === "123456") {
+        const messagesCollection = collection(db, "messages");
+
+        try {
+            // Get all messages from the collection
+            const querySnapshot = await getDocs(messagesCollection);
+
+            // Loop through each message document and delete
+            querySnapshot.forEach((doc) => {
+                deleteDoc(doc.ref).then(() => {
+                    console.log("Message deleted successfully");
+                }).catch((error) => {
+                    console.error("Error deleting message: ", error);
+                });
+            });
+
+            // Optionally, clear the chat box UI immediately after deletion
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = "";  // Clear the displayed messages from the UI
+
+        } catch (error) {
+            console.error("Error clearing chat: ", error);
+        }
+
+    } else {
+        // If the password doesn't match
+        alert("Incorrect password! Chat was not cleared.");
+    }
+}
+
+// Add event listener for profile image click to navigate to profile.html
+document.getElementById("profile-logo").addEventListener("click", () => {
+    window.location.href = "profile.html";  // Redirect to the profile page
+});
+const usernameDiv = document.createElement("div");
+usernameDiv.classList.add("username");
+usernameDiv.textContent = messageData.user;
+usernameDiv.style.cursor = "pointer";  // Make the username clickable
+usernameDiv.addEventListener("click", () => {
+    window.location.href = `chat.html?username=${messageData.user}`;
+});
+messageDiv.appendChild(usernameDiv);
+
+// prophile pic
+addDoc(collection(db, "messages"), {
+    text: message,
+    timestamp: new Date(),
+    user: currentUser.displayName || currentUser.email,
+    userPhotoURL: currentUser.photoURL || 'default-logo.png'  // Save the user's photo URL with the message
+});
+
+snapshot.forEach((doc) => {
+    const messageData = doc.data();
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message");
+
+    // Create the profile image element and assign the source
+    const profileImg = document.createElement("img");
+    profileImg.src = messageData.userPhotoURL || 'default-logo.png'; // If no URL, use a default image
+    profileImg.classList.add("profile-img");
+
+    // Create username div and append it
+    const usernameDiv = document.createElement("div");
+    usernameDiv.classList.add("username");
+    usernameDiv.textContent = messageData.user;
+    
+    // Create message text div and append it
+    const messageTextDiv = document.createElement("div");
+    messageTextDiv.classList.add("message-text");
+    messageTextDiv.textContent = messageData.text;
+
+    // Append the elements in the correct order: image, username, and message text
+    messageDiv.appendChild(profileImg);
+    messageDiv.appendChild(usernameDiv);
+    messageDiv.appendChild(messageTextDiv);
+
+    // Create timestamp div and append it
+    const timestampDiv = document.createElement("div");
+    timestampDiv.classList.add("timestamp");
+    timestampDiv.textContent = formatTimestamp(messageData.timestamp);
+    messageDiv.appendChild(timestampDiv);
+
+    // Add the message to the chat box
+    chatBox.appendChild(messageDiv);
+});
+
 
 
     </script>
+    
 </body>
 </html>
-
-

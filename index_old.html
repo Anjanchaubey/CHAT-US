@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLAST NOW!</title>
+    <link rel="stylesheet" href="style_old.css">
+</head>
+<body>
+    <div class="header">
+         <!-- Left Section: Clear Chat Button -->
+         <button id="clear-chat-button">🗑</button>
+        <!-- Blast Section -->
+        <div id="Blast-section" class="header-section active" onclick="location.href='index_old.html'">
+            Blast
+        </div>
+    
+        <!-- Chat Section -->
+        <div id="chat-section" class="header-section" onclick="location.href='index.html'">
+            Chat
+        </div>
+    
+        <!-- Profile Section -->
+        <div id="username-container">
+            <p><span id="username-display"></span></p>
+            <!-- Update the logo image source here -->
+            <a href="profile.html"><img src="logo.png" alt="Profile" id="profile-logo" /></a>
+        </div>
+    </div>
+    </div>
+    
+    
+    
+    
+
+    <div id="Blast-box" class="Blast-box">
+        <!-- Blast will be displayed here -->
+    </div>
+
+    <div id="Blast-popup" class="Blast-popup" style="display:none;">
+        <textarea id="Blast-input" placeholder="What's happening?" rows="4"></textarea>
+        <input type="file" id="file-input" style="display: none;" />
+        <button id="file-button">Attach File</button>
+        <button id="send-Blast-button">Blast</button>
+        <button id="cancel-Blast-button">Cancel</button> <!-- Cancel button -->
+    </div>
+    
+
+    <div class="floating-button">
+        <button id="add-Blast-button">+</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"; // Importing Firebase Auth
+import { getFirestore, collection, addDoc, onSnapshot, orderBy, query, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+import { getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCYY2GQqS0tCXb7Oxw8AWXhpexq9e8VRUs",
+    authDomain: "aspirehub-32863.firebaseapp.com",
+    projectId: "aspirehub-32863",
+    storageBucket: "aspirehub-32863.appspot.com",
+    messagingSenderId: "686810111182",
+    appId: "1:686810111182:web:4290b4b1b6e64934ec449f",
+    measurementId: "G-KX41R0SSMY"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);  // Initialize auth here
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Now you can use the `auth` object in your code
+onAuthStateChanged(auth, (user) => {
+    const profileLogo = document.getElementById('profile-logo'); // Get the profile image element
+    if (profileLogo) { // Check if the profile image element exists
+        if (user) {
+            const profileImage = user.photoURL || 'default-logo.png'; // Use the user's photoURL or a default image
+            profileLogo.src = profileImage; // Update the profile image source
+        } else {
+            window.location.href = "login.html"; // Redirect to login page if no user
+        }
+    } else {
+        console.warn('Profile image element not found.');
+    }
+});
+
+
+
+// Show the Blast popup when the "+" button is clicked
+document.getElementById("add-Blast-button").addEventListener("click", () => {
+    document.getElementById("Blast-popup").style.display = "block";
+});
+
+document.getElementById("send-Blast-button").addEventListener("click", sendBlast);
+document.getElementById("file-button").addEventListener("click", () => {
+    document.getElementById("file-input").click();
+});
+
+function sendBlast() {
+    const BlastText = document.getElementById("Blast-input").value;
+    const fileInput = document.getElementById("file-input");
+
+    const currentUser = auth.currentUser;  // Access the current user here
+
+    if (!currentUser) {
+        alert("You must be logged in to Blast.");
+        return; // Prevent further execution if user is not logged in
+    }
+
+    if (BlastText.trim() || (fileInput && fileInput.files.length > 0)) {
+        const userPhotoURL = currentUser.photoURL || 'default-logo.png';
+        const BlastData = {
+            text: BlastText.trim(),
+            timestamp: new Date(),
+            user: currentUser.displayName || currentUser.email.split('@')[0],
+            userPhotoURL: userPhotoURL,
+            userId: currentUser.uid  // Store the user's ID to identify Blast owner
+        };
+
+        if (fileInput && fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const storageRef = ref(storage, 'Blast-files/' + file.name);
+
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            uploadTask.on('state_changed', 
+                () => {},
+                (error) => {},
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                        BlastData.mediaUrl = url;
+                        BlastData.mediaType = file.type;
+                        addDoc(collection(db, "Blast"), BlastData)
+                            .then(() => {
+                                document.getElementById("Blast-input").value = "";
+                                fileInput.value = "";
+                                document.getElementById("Blast-popup").style.display = 'none';
+                            })
+                            .catch((error) => console.error("Error adding document: ", error));
+                    });
+                }
+            );
+        } else {
+            addDoc(collection(db, "Blast"), BlastData)
+                .then(() => {
+                    document.getElementById("Blast-input").value = "";
+                    document.getElementById("Blast-popup").style.display = 'none';
+                })
+                .catch((error) => console.error("Error adding document: ", error));
+        }
+    }
+}
+
+
+const q = query(collection(db, "Blast"), orderBy("timestamp", "desc"));
+onSnapshot(q, (snapshot) => {
+    const BlastBox = document.getElementById("Blast-box");
+    BlastBox.innerHTML = "";  // Clear current Blast
+
+    snapshot.forEach((doc) => {
+        const BlastData = doc.data();
+        const BlastDiv = document.createElement("div");
+        BlastDiv.classList.add("Blast");
+
+        const userDiv = document.createElement("div");
+        userDiv.classList.add("user");
+        userDiv.textContent = BlastData.user;
+        BlastDiv.appendChild(userDiv);
+
+        // Add three-dot menu for deleting Blast
+        const menuDiv = document.createElement("div");
+        menuDiv.classList.add("menu");
+        menuDiv.textContent = "🗑️";
+        menuDiv.onclick = () => showDeleteOption(BlastData, doc.id);
+        BlastDiv.appendChild(menuDiv);
+
+        if (BlastData.mediaUrl) {
+            const mediaContainer = document.createElement("div");
+            mediaContainer.classList.add("media-container");
+
+            if (BlastData.mediaType.includes("image")) {
+                const img = document.createElement("img");
+                img.src = BlastData.mediaUrl;
+                mediaContainer.appendChild(img);
+            } else if (BlastData.mediaType.includes("video")) {
+                const video = document.createElement("video");
+                video.src = BlastData.mediaUrl;
+                video.controls = true;
+                mediaContainer.appendChild(video);
+            }
+
+            BlastDiv.appendChild(mediaContainer);
+        }
+
+        const BlastText = document.createElement("div");
+        BlastText.classList.add("Blast-text");
+        BlastText.textContent = BlastData.text;
+        BlastDiv.appendChild(BlastText);
+
+        const timestampDiv = document.createElement("div");
+        timestampDiv.classList.add("timestamp");
+        timestampDiv.textContent = new Date(BlastData.timestamp.seconds * 1000).toLocaleString();
+        BlastDiv.appendChild(timestampDiv);
+
+        BlastBox.appendChild(BlastDiv);
+    });
+});
+
+// Show delete option if the Blast belongs to the logged-in user
+// Show delete option if the Blast belongs to the logged-in user
+function showDeleteOption(BlastData, BlastId) {
+    const currentUser = auth.currentUser;  // Correctly access the current user
+
+    // Check if the Blast belongs to the logged-in user
+    if (currentUser && BlastData.userId === currentUser.uid) {
+        const deleteOption = confirm("Do you want to delete this Blast?");
+        if (deleteOption) {
+            deleteBlast(BlastId);
+        }
+    } else {
+        alert("You can only delete your own Blast.");
+    }
+}
+
+
+// Delete Blast from Firestore
+function deleteBlast(BlastId) {
+    const BlastRef = doc(db, "Blast", BlastId);  // Use 'doc' to get the reference to the Blast
+    deleteDoc(BlastRef)
+        .then(() => {
+            alert("Blast deleted successfully.");
+        })
+        .catch((error) => {
+            console.error("Error deleting Blast: ", error);
+            alert("An error occurred while deleting the Blast.");
+        });
+}
+
+// Close the popup when the Cancel button is clicked
+document.getElementById("cancel-Blast-button").addEventListener("click", () => {
+    document.getElementById("Blast-popup").style.display = "none";
+    document.getElementById("Blast-input").value = "";  // Optional: Clear the input field when closed
+    document.getElementById("file-input").value = "";  // Optional: Clear the file input when closed
+});
+
+
+// Add event listener for the "Clear Chat" button
+document.getElementById("clear-chat-button").addEventListener("click", async () => {
+    // Prompt the user to enter the password
+    const password = prompt("Enter password to clear all Blast:");
+
+    // Check if the password is correct
+    if (password === "123456") {
+        // Password is correct, proceed to delete all Blast
+        try {
+            const BlastCollection = collection(db, "Blast");
+            const querySnapshot = await getDocs(BlastCollection);  // Get all Blast from Firestore
+            
+            // Loop through all the Blast and delete them one by one
+            querySnapshot.forEach(async (doc) => {
+                await deleteDoc(doc.ref);  // Delete each Blast document
+            });
+            
+            alert("All Blast have been cleared!");
+        } catch (error) {
+            console.error("Error clearing Blast: ", error);
+            alert("An error occurred while clearing the Blast.");
+        }
+    } else {
+        // Incorrect password
+        alert("Incorrect password!");
+    }
+});
+
+
+
+    </script>
+</body>
+</html>

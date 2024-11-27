@@ -68,27 +68,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const storage = getStorage(app);
-        const auth = getAuth(app);
-
-        import { getMessaging, onMessage, getToken } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-messaging.js";
-
-const messaging = getMessaging(app);
-
-// Set up FCM token for the current user
-getToken(messaging, {
-    vapidKey: "BA69QwvEI1XQwee2ZfjEd8PSZ_qxGV8wr-0s7f8WC_RRsGQN73ceAqgprfriM0O6VBjYqDRQGEAic3c3Z3n0lCU"
-})
-    .then((currentToken) => {
-        if (currentToken) {
-            console.log("FCM Token:", currentToken);
-            // Send token to server or store it locally
-        } else {
-            console.warn("No registration token available. Ensure the user has granted notification permissions.");
-        }
-    })
-    .catch((error) => {
-        console.error("FCM Token error:", error.message);
-    });
+        const auth = getAuth(app)
 
        // Now you can use the `auth` object in your code
 onAuthStateChanged(auth, (user) => {
@@ -394,25 +374,6 @@ snapshot.forEach((doc) => {
 });
 
 // NOTIFICATION
-// NOTIFICATION
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .then((registration) => {
-            console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch((err) => {
-            console.error('Service Worker registration failed:', err);
-        });
-}
-
-Notification.requestPermission().then((permission) => {
-    if (permission === "granted") {
-        console.log("Notification permission granted.");
-    } else {
-        console.warn("Notification permission denied.");
-    }
-});
-
 
     </script>
     

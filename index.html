@@ -3,20 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat</title>
+    <title>SimplY Chat</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="header">
-        <!-- Left Section: Clear Chat Button -->
-        <button id="clear-chat-button">Clear Chat</button>
-    
-        <!-- Right Section: Logo and Username -->
-        <div id="username-container">
-            <p>Welcome, <span id="username-display">User</span></p>
-            <!-- Update the logo image source here -->
-            <img src="logo.png" alt="Profile" id="profile-logo" />
+         <!-- Left Section: Clear Chat Button -->
+         <button id="clear-chat-button">🗑</button>
+        <!-- Blast Section -->
+        <div id="Blast-section" class="header-section" onclick="location.href='index_old.html'">
+            Blast
         </div>
+    
+        <!-- Chat Section -->
+        <div id="chat-section" class="header-section active" onclick="location.href='index.html'">
+            Chat
+        </div>
+    
+        <!-- Profile Section -->
+        <div id="username-container">
+            <p><span id="username-display"></span></p>
+        <!-- Update the logo image source here -->
+            <a href="profile.html"><img src="logo.png" alt="Profile" id="profile-logo" /></a>
+        </div>
+    </div>
     </div>
 
         <div id="chat-box" class="chat-box">
@@ -60,19 +70,21 @@
         const storage = getStorage(app);
         const auth = getAuth(app);
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Update the username
-                const usernameDisplay = document.getElementById('username-display');
-                usernameDisplay.innerText = user.displayName || user.email.split('@')[0];
-                
-                // Dynamically change the profile image if available in the user's profile
-                const profileImage = user.photoURL || 'default-logo.png'; // Use default if no profile image
-                document.getElementById('profile-logo').src = profileImage;
-            } else {
-                window.location.href = "login.html";
-            }
-        });
+       // Now you can use the `auth` object in your code
+onAuthStateChanged(auth, (user) => {
+    const profileLogo = document.getElementById('profile-logo'); // Get the profile image element
+    if (profileLogo) { // Check if the profile image element exists
+        if (user) {
+            const profileImage = user.photoURL || 'default-logo.png'; // Use the user's photoURL or a default image
+            profileLogo.src = profileImage; // Update the profile image source
+        } else {
+            window.location.href = "login.html"; // Redirect to login page if no user
+        }
+    } else {
+        console.warn('Profile image element not found.');
+    }
+});
+
 
         function sendMessage() {
     const message = document.getElementById("message-input").value;

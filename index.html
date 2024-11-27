@@ -396,15 +396,14 @@ snapshot.forEach((doc) => {
 // NOTIFICATION
 // NOTIFICATION
 if ('serviceWorker' in navigator) {
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker
-    .register('/firebase-messaging-sw.js') // Ensure this path matches the deployed file location
-    .then((registration) => {
-        console.log('Service Worker registered with scope:', registration.scope);
-    })
-    .catch((err) => {
-        console.error('Service Worker registration failed:', err);
-    });
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((err) => {
+            console.error('Service Worker registration failed:', err);
+        });
+}
 Notification.requestPermission().then((permission) => {
     if (permission === "granted") {
         console.log("Notification permission granted.");

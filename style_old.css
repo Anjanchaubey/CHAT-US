@@ -406,3 +406,15 @@ body {
 #clear-chat-button:hover {
     background-color: #e60000;
 }
+/* Style for PDF download link */
+.media-container a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+    border: 7PX solid rgb(216, 237, 19);
+    background-color: rgb(216, 237, 19);
+}
+
+.media-container a:hover {
+    text-decoration: underline;
+}
